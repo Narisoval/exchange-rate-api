@@ -61,9 +61,8 @@ func loadSubscribers() error {
 }
 
 func handleRate(w http.ResponseWriter, r *http.Request) error {
-	err := checkHttpMethod("GET", r, w)
-	if err != nil {
-		return err
+	if r.Method != "GET" {
+		return WriteJson(w, http.StatusBadRequest, "This HTTP method is not allowed: "+r.Method)
 	}
 
 	finalRate, err := GetFinalUahRate()
@@ -76,13 +75,12 @@ func handleRate(w http.ResponseWriter, r *http.Request) error {
 }
 
 func handleSubscribe(w http.ResponseWriter, r *http.Request) error {
-	err := checkHttpMethod("POST", r, w)
-	if err != nil {
-		return err
+	if r.Method != "POST" {
+		return WriteJson(w, http.StatusBadRequest, "This HTTP method is not allowed: "+r.Method)
 	}
 
 	email := r.FormValue("email")
-	_, err = mail.ParseAddress(email)
+	_, err := mail.ParseAddress(email)
 	if err != nil {
 		http.Error(w, "Invalid email address", http.StatusBadRequest)
 		return err
@@ -104,22 +102,15 @@ func handleSubscribe(w http.ResponseWriter, r *http.Request) error {
 	return WriteJson(w, http.StatusOK, "Subscribed successfully")
 }
 
-func checkHttpMethod(methodName string, r *http.Request, w http.ResponseWriter) error {
-	if r.Method != methodName {
-		return WriteJson(w, http.StatusBadRequest, "This HTTP method is not allowed: %s")
-	}
-	return nil
-}
-
 func saveSubscribersToFile() error {
 	data := strings.Join(subscribers, "\n")
 	return ioutil.WriteFile(SubscribersFileName, []byte(data), 0644)
 }
 
 func handleSendEmails(w http.ResponseWriter, r *http.Request) error {
-	err := checkHttpMethod("POST", r, w)
-	if err != nil {
-		return err
+
+	if r.Method != "POST" {
+		return WriteJson(w, http.StatusBadRequest, "This HTTP method is not allowed: "+r.Method)
 	}
 
 	finalRate := fmt.Sprint(GetFinalUahRate())
